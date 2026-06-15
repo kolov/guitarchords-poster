@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guitar Chords by Intervals (Semitones)</title>
+<style>
+  /* ============================================================
+     EDIT COLORS HERE — every colour in the poster is a variable.
+     ============================================================ */
+  :root {
+    --bg:            #0e2235;   /* page / poster background        */
+    --card:          #f7f4ec;   /* cream card background           */
+    --ink:           #1c2733;   /* main text                      */
+    --accent:        #e8a33d;   /* orange accent (title, footer)   */
+
+    /* section header bars */
+    --h-blue:   #2e4a6b;
+    --h-green:  #2f6b3f;
+    --h-tan:    #c8893a;
+    --h-purple: #5b3a72;
+    --h-teal:   #2a7a7a;
+    --h-brown:  #8a4a2a;
+    --h-darkred:#8a2a3a;
+
+    /* note / interval role colours */
+    --root: #d14b3d;   /* root  (0)  */
+    --n3:   #3f8f4f;   /* 3rd        */
+    --n5:   #3a6bd1;   /* 5th        */
+    --n7:   #7a4f9c;   /* 7th        */
+    --n9:   #d98a2b;   /* 9th / ext  */
+
+    /* interval-table left-cell tints (low → high tension) */
+    --t0:#ffffff; --t1:#e7f3e2; --t2:#dcefd4; --t3:#d3ecc8; --t4:#eef0c6;
+    --t5:#ffffff; --t6:#d7e8f5; --t7:#ffffff; --t8:#f7ead9; --t9:#f7d9c6;
+    --t10:#f5c9b8; --t11:#f3bdb6; --t12:#d7e8f5;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #444;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+  }
+
+  /* The poster sheet */
+  .poster {
+    width: 1024px;
+    margin: 20px auto;
+    background: var(--bg);
+    padding: 18px;
+    border-radius: 8px;
+  }
+
+  /* ---------- Header ---------- */
+  header { text-align: center; padding: 6px 0 14px; }
+  header h1 {
+    margin: 0;
+    font-size: 46px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    line-height: 1.0;
+    color: #fff;
+  }
+  header h1 .light { color: #cdd7e0; font-weight: 700; }
+  header .sub {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #cdd7e0;
+  }
+  header .sub em { color: var(--accent); font-style: normal; }
+
+  /* ---------- Generic card / section ---------- */
+  .card {
+    background: var(--card);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .card > h2 {
+    margin: 0;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #fff;
+    text-align: center;
+  }
+  .card .body { padding: 8px 12px 10px; }
+
+  /* header colour helpers */
+  .blue   > h2 { background: var(--h-blue); }
+  .green  > h2 { background: var(--h-green); }
+  .tan    > h2 { background: var(--h-tan); }
+  .purple > h2 { background: var(--h-purple); }
+  .teal   > h2 { background: var(--h-teal); }
+  .brown  > h2 { background: var(--h-brown); }
+  .darkred> h2 { background: var(--h-darkred); }
+
+  /* ---------- Layout grids ---------- */
+  .grid { display: grid; gap: 12px; }
+  .top    { grid-template-columns: 1fr 1fr; align-items: start; }
+  .chords { grid-template-columns: 1fr 1fr 1fr; align-items: start; }
+  .bottom { grid-template-columns: 1fr 1fr; align-items: start; }
+  .stack  { display: grid; gap: 12px; }
+  .mt     { margin-top: 12px; }
+
+  /* ---------- Tables ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    font-size: 10px; letter-spacing: .5px; text-transform: uppercase;
+    color: #5a6470; text-align: left; padding: 3px 6px;
+    border-bottom: 1px solid #d9d3c6;
+  }
+  td { padding: 3px 6px; border-bottom: 1px solid #ece7db; }
+  tr:last-child td { border-bottom: none; }
+  .num {
+    font-weight: 800; text-align: center; width: 30px;
+    border-radius: 4px;
+  }
+
+  /* chord formula tables (name + numbers) */
+  .formula td { font-size: 13px; }
+  .formula .name { font-weight: 700; white-space: nowrap; }
+  .formula .deg  { text-align: center; width: 26px; color: #2e4a6b; font-weight: 600; }
+  .muted { color: #7a8490; font-size: 11px; font-weight: 400; }
+
+  /* key ideas / quick rules text lists */
+  ul.clean { margin: 4px 0 0; padding-left: 16px; font-size: 12.5px; }
+  ul.clean li { margin: 2px 0; }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .lbl { font-weight: 700; }
+
+  .b3 { color: var(--n3); font-weight: 700; }
+  .b5 { color: var(--n5); font-weight: 700; }
+  .b7 { color: var(--n7); font-weight: 700; }
+  .br { color: var(--root); font-weight: 700; }
+
+  /* essential 10 */
+  .ess td:first-child { width: 22px; }
+  .badge {
+    display: inline-flex; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--h-blue); color: #fff; font-size: 11px; font-weight: 700;
+    align-items: center; justify-content: center;
+  }
+
+  /* note colour roles */
+  .root { color: var(--root); font-weight: 700; }
+  .n3   { color: var(--n3);   font-weight: 700; }
+  .n5   { color: var(--n5);   font-weight: 700; }
+  .n7   { color: var(--n7);   font-weight: 700; }
+  .n9   { color: var(--n9);   font-weight: 700; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 14px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    color: #fff; font-weight: 800; font-size: 13px; text-align: center;
+  }
+  footer .accent { color: var(--accent); }
+  footer .pill {
+    background: var(--accent); color: #14202c; border-radius: 6px;
+    padding: 8px; letter-spacing: .5px;
+  }
+
+  /* ---------- Print: one portrait page ---------- */
+  @page { size: A4 portrait; margin: 8mm; }
+  @media print {
+    body { background: #fff; }
+    .poster {
+      width: 100%; margin: 0; border-radius: 0;
+      transform-origin: top left;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="poster">
+
+  <header>
+    <h1>GUITAR CHORDS<br><span class="light">BY INTERVALS (SEMITONES)</span></h1>
+    <div class="sub">INTERVALS ARE MEASURED IN <em>SEMITONES</em> FROM THE ROOT (0)</div>
+  </header>
+
+  <!-- ===================== TOP ROW ===================== -->
+  <div class="grid top">
+
+    <!-- ALL INTERVALS -->
+    <div class="card blue">
+      <h2>ALL INTERVALS WITHIN ONE OCTAVE</h2>
+      <div class="body">
+        <table>
+          <thead>
+            <tr><th>Semitones</th><th>Name</th><th>Abbreviation</th><th>Example from E</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="num" style="background:var(--t0)">0</td><td>Perfect Unison</td><td>1 (P1)</td><td>E</td></tr>
+            <tr><td class="num" style="background:var(--t1)">1</td><td>Minor 2nd</td><td>m2</td><td>F</td></tr>
+            <tr><td class="num" style="background:var(--t2)">2</td><td>Major 2nd</td><td>M2</td><td>F#</td></tr>
+            <tr><td class="num" style="background:var(--t3)">3</td><td>Minor 3rd</td><td>m3</td><td>G</td></tr>
+            <tr><td class="num" style="background:var(--t4)">4</td><td>Major 3rd</td><td>M3</td><td>G#</td></tr>
+            <tr><td class="num" style="background:var(--t5)">5</td><td>Perfect 4th</td><td>P4</td><td>A</td></tr>
+            <tr><td class="num" style="background:var(--t6)">6</td><td>Tritone <span class="muted">(Aug 4th / Dim 5th)</span></td><td>TT</td><td>A# / Bb</td></tr>
+            <tr><td class="num" style="background:var(--t7)">7</td><td>Perfect 5th</td><td>P5</td><td>B</td></tr>
+            <tr><td class="num" style="background:var(--t8)">8</td><td>Minor 6th</td><td>m6</td><td>C</td></tr>
+            <tr><td class="num" style="background:var(--t9)">9</td><td>Major 6th</td><td>M6</td><td>C#</td></tr>
+            <tr><td class="num" style="background:var(--t10)">10</td><td>Minor 7th</td><td>m7</td><td>D</td></tr>
+            <tr><td class="num" style="background:var(--t11)">11</td><td>Major 7th</td><td>M7</td><td>D#</td></tr>
+            <tr><td class="num" style="background:var(--t12)">12</td><td>Perfect Octave</td><td>8 (P8)</td><td>E</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT STACK -->
+    <div class="stack">
+      <div class="card green">
+        <h2>HOW TO READ THIS CHART</h2>
+        <div class="body">
+          <ul class="clean">
+            <li>Numbers show the distance in semitones from the root (0).</li>
+            <li>Example: In E7 = E (0), G# (4), B (7), D (10).</li>
+            <li>Play the notes in any order on the guitar.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card green">
+        <h2>KEY IDEAS</h2>
+        <div class="body twocol">
+          <div>
+            <div class="lbl">Building blocks</div>
+            <ul class="clean">
+              <li><span class="b3">Major 3rd</span> = 4</li>
+              <li><span class="br">Minor 3rd</span> = 3</li>
+              <li><span class="b5">Perfect 5th</span> = 7</li>
+              <li><span class="b7">Minor 7th</span> = 10</li>
+              <li><span class="b7">Major 7th</span> = 11</li>
+            </ul>
+          </div>
+          <div>
+            <div class="lbl">Patterns to know</div>
+            <table class="formula">
+              <tr><td class="name">Major triad</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg"></td></tr>
+              <tr><td class="name">Minor triad</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg"></td></tr>
+              <tr><td class="name">Dominant 7</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">10</td></tr>
+              <tr><td class="name">Major 7</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">11</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card tan">
+        <h2>QUICK RULES (MEMORY SHORTCUTS)</h2>
+        <div class="body">
+          <ul class="clean">
+            <li><span class="lbl">m</span> (minor) → lower the 3rd (4 → 3)</li>
+            <li><span class="lbl">7</span> (dominant) → add b7 (10)</li>
+            <li><span class="lbl">maj7</span> → add 7 (11)</li>
+            <li><span class="lbl">9</span> → add 9 (14)</li>
+            <li><span class="lbl">sus2 / sus4</span> → replace the 3rd with 2 or 4</li>
+            <li><span class="lbl">dim</span> → lower the 5th (7 → 6)</li>
+            <li><span class="lbl">aug</span> → raise the 5th (7 → 8)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CHORD GRID 1 ===================== -->
+  <div class="grid chords mt">
+    <div class="card purple">
+      <h2>TRIADS (3-NOTE CHORDS)</h2>
+      <div class="body">
+        <table class="formula">
+          <tr><td class="name">Major</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td></tr>
+          <tr><td class="name">Minor</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td></tr>
+          <tr><td class="name">Diminished</td><td class="deg">0</td><td class="deg">3</td><td class="deg">6</td></tr>
+          <tr><td class="name">Augmented</td><td class="deg">0</td><td class="deg">4</td><td class="deg">8</td></tr>
+          <tr><td class="name">Power Chord (5)</td><td class="deg">0</td><td class="deg">7</td><td class="deg"></td></tr>
+          <tr><td class="name">Sus2</td><td class="deg">0</td><td class="deg">2</td><td class="deg">7</td></tr>
+          <tr><td class="name">Sus4</td><td class="deg">0</td><td class="deg">5</td><td class="deg">7</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card blue">
+      <h2>SEVENTH CHORDS (4-NOTE)</h2>
+      <div class="body">
+        <table class="formula">
+          <tr><td class="name">7 (Dominant)</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">10</td></tr>
+          <tr><td class="name">Maj7</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">11</td></tr>
+          <tr><td class="name">m7</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">10</td></tr>
+          <tr><td class="name">mMaj7</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">11</td></tr>
+          <tr><td class="name">dim7</td><td class="deg">0</td><td class="deg">3</td><td class="deg">6</td><td class="deg">9</td></tr>
+          <tr><td class="name">m7b5 <span class="muted">(Half-Dim)</span></td><td class="deg">0</td><td class="deg">3</td><td class="deg">6</td><td class="deg">10</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card green">
+        <h2>SIXTH CHORDS (4-NOTE)</h2>
+        <div class="body">
+          <table class="formula">
+            <tr><td class="name">6</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">9</td></tr>
+            <tr><td class="name">m6</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">9</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="card tan">
+        <h2>ADDED-NOTE CHORDS</h2>
+        <div class="body">
+          <table class="formula">
+            <tr><td class="name">add9</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">14</td></tr>
+            <tr><td class="name">madd9</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">14</td></tr>
+            <tr><td class="name">6/9</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">9</td><td class="deg">14</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CHORD GRID 2 ===================== -->
+  <div class="grid chords mt">
+    <div class="card teal">
+      <h2>NINTH CHORDS (5-NOTE)</h2>
+      <div class="body">
+        <table class="formula">
+          <tr><td class="name">9 (Dominant 9)</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">10</td><td class="deg">14</td></tr>
+          <tr><td class="name">Maj9</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">11</td><td class="deg">14</td></tr>
+          <tr><td class="name">m9</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">10</td><td class="deg">14</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="card brown">
+      <h2>ELEVENTH CHORDS (6-NOTE)</h2>
+      <div class="body">
+        <table class="formula">
+          <tr><td class="name">11</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">10</td><td class="deg">14</td><td class="deg">17</td></tr>
+          <tr><td class="name">m11</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">10</td><td class="deg">14</td><td class="deg">17</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="card darkred">
+      <h2>THIRTEENTH CHORDS (7-NOTE)</h2>
+      <div class="body">
+        <table class="formula">
+          <tr><td class="name">13</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">10</td><td class="deg">14</td><td class="deg">17</td><td class="deg">21</td></tr>
+          <tr><td class="name">m13</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">10</td><td class="deg">14</td><td class="deg">17</td><td class="deg">21</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== BOTTOM ROW ===================== -->
+  <div class="grid bottom mt">
+
+    <div class="card blue">
+      <h2>THE "ESSENTIAL 10" (START HERE)</h2>
+      <div class="body">
+        <table class="ess formula">
+          <tr><td><span class="badge">1</span></td><td class="name">Major</td><td class="muted">Happy, bright, stable</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg"></td></tr>
+          <tr><td><span class="badge">2</span></td><td class="name">Minor</td><td class="muted">Sad, mellow, darker</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg"></td></tr>
+          <tr><td><span class="badge">3</span></td><td class="name">5 (Power)</td><td class="muted">Strong, open, rock sound</td><td class="deg">0</td><td class="deg">7</td><td class="deg"></td><td class="deg"></td></tr>
+          <tr><td><span class="badge">4</span></td><td class="name">Sus2</td><td class="muted">Open, unresolved</td><td class="deg">0</td><td class="deg">2</td><td class="deg">7</td><td class="deg"></td></tr>
+          <tr><td><span class="badge">5</span></td><td class="name">Sus4</td><td class="muted">Open, suspended</td><td class="deg">0</td><td class="deg">5</td><td class="deg">7</td><td class="deg"></td></tr>
+          <tr><td><span class="badge">6</span></td><td class="name">7 (Dominant)</td><td class="muted">Bluesy, wants to resolve</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">10</td></tr>
+          <tr><td><span class="badge">7</span></td><td class="name">Maj7</td><td class="muted">Smooth, jazzy</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">11</td></tr>
+          <tr><td><span class="badge">8</span></td><td class="name">m7</td><td class="muted">Warm, jazzy, soulful</td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">10</td></tr>
+          <tr><td><span class="badge">9</span></td><td class="name">dim</td><td class="muted">Tense, unstable</td><td class="deg">0</td><td class="deg">3</td><td class="deg">6</td><td class="deg"></td></tr>
+          <tr><td><span class="badge">10</span></td><td class="name">add9</td><td class="muted">Full, lush</td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">14</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card blue">
+      <h2>EXAMPLES IN E</h2>
+      <div class="body">
+        <table>
+          <thead>
+            <tr><th>Chord</th><th>Notes</th><th colspan="5">Formula</th></tr>
+          </thead>
+          <tbody class="formula">
+            <tr><td class="name">E Major</td><td><span class="root">E</span> <span class="n3">G#</span> <span class="n5">B</span></td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg"></td><td class="deg"></td></tr>
+            <tr><td class="name">E Minor</td><td><span class="root">E</span> <span class="n3">G</span> <span class="n5">B</span></td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg"></td><td class="deg"></td></tr>
+            <tr><td class="name">E5</td><td><span class="root">E</span> <span class="n5">B</span></td><td class="deg">0</td><td class="deg">7</td><td class="deg"></td><td class="deg"></td><td class="deg"></td></tr>
+            <tr><td class="name">E7</td><td><span class="root">E</span> <span class="n3">G#</span> <span class="n5">B</span> <span class="n7">D</span></td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">10</td><td class="deg"></td></tr>
+            <tr><td class="name">Emaj7</td><td><span class="root">E</span> <span class="n3">G#</span> <span class="n5">B</span> <span class="n7">D#</span></td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">11</td><td class="deg"></td></tr>
+            <tr><td class="name">Em7</td><td><span class="root">E</span> <span class="n3">G</span> <span class="n5">B</span> <span class="n7">D</span></td><td class="deg">0</td><td class="deg">3</td><td class="deg">7</td><td class="deg">10</td><td class="deg"></td></tr>
+            <tr><td class="name">E9</td><td><span class="root">E</span> <span class="n3">G#</span> <span class="n5">B</span> <span class="n7">D</span> <span class="n9">F#</span></td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">10</td><td class="deg">14</td></tr>
+            <tr><td class="name">Eadd9</td><td><span class="root">E</span> <span class="n3">G#</span> <span class="n5">B</span> <span class="n9">F#</span></td><td class="deg">0</td><td class="deg">4</td><td class="deg">7</td><td class="deg">14</td><td class="deg"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer>
+    <div>💡 THINK IN <span class="accent">INTERVALS</span>,<br>NOT JUST SHAPES.</div>
+    <div>🎸 SAME FORMULA.<br>ANY ROOT NOTE.</div>
+    <div class="pill">PRACTICE. LISTEN.<br>MAKE MUSIC! 🎵</div>
+  </footer>
+
+</div>
+</body>
+</html>
